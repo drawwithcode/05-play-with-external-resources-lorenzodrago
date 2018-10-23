@@ -8,6 +8,7 @@ function preload(){
   failSound = loadSound("./fail.wav");
   menuImage = loadImage("./menu.png");
 }
+
 function setup() {
   pixelDensity(1);
   analyzer = new p5.Amplitude();
@@ -17,7 +18,7 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   angleMode(DEGREES);
   stroke(255);
-  frameRate(60);
+  timeCountStore=millis()*0.06;
   // put setup code here
 }
 var radius = 300;
@@ -29,15 +30,20 @@ var mult2=5;
 var score=0; var lastScore = 0; var scoreText = 0;
 var hit=0;
 var offset=0;
-var speed=6;
-var avatarSpeed=5; //do not change. it will break spiral patterns.
+var speed=8;
+var avatarSpeed=10; //do not change. it will break spiral patterns.
 var polySides = 6;
 var sideAngle=360/polySides;
 var audioVisualMode=true;
-
+var timeCount = 0; var timeCountStore=0;
 var gamePaused=true;
 var firstRun=true;
+
+var now, delta;
 function draw() {
+  if (gamePaused==false) {
+    timeCount = millis()*0.06 - timeCountStore;
+  }
 
   background(10,20,30);
   //framerate counter (commented out).
@@ -48,15 +54,6 @@ function draw() {
   text(Math.floor(frameRate()), 20, 40);
   pop();*/
 
-
-  if (frameCount>10000) {
-    frameCount=0;
-  }
-  if (keyIsDown(RIGHT_ARROW) && gamePaused==false) {
-    offset+= avatarSpeed*2;
-  } else if (keyIsDown(LEFT_ARROW) && gamePaused==false) {
-    offset+= -avatarSpeed*2;
-  }
   volume = analyzer.getLevel();
   translate(width/2, height/2);
 
@@ -64,22 +61,17 @@ function draw() {
 
 
   // BIG SPIN
-  if (frameCount%720>360) {
-    rotate(-frameCount);
+  if (timeCount%720>360) {
+    rotate(-timeCount);
   } else {
-    rotate(frameCount);
+    rotate(timeCount);
   }
-  if (frameCount%720>360 && frameCount%720<396 && frameCount>1440) {
-    rotate(-frameCount*5);
+  if (timeCount%720>360 && timeCount%720<396 && timeCount>1440) {
+    rotate(-timeCount*5);
   }
-  if (frameCount%1440>395 && frameCount%1440<720+396 && frameCount>1440) {
+  if (timeCount%1440>395 && timeCount%1440<720+396 && timeCount>1440) {
     rotate(180);
   }
-
-
-
-
-
 
   fill(10,20,30);
 
@@ -111,12 +103,32 @@ function draw() {
   pop();
 
   //Player triangle here.
+
+
+
+
+  var calcSpeed = function(del, speed) {
+    return (speed * del) * (60 / 1000);
+  }
+  if (keyIsDown(RIGHT_ARROW) && gamePaused==false) {
+    now = millis();
+    delta = now - then;
+    offset+= calcSpeed(delta, avatarSpeed);
+    then = now;
+  } else if (keyIsDown(LEFT_ARROW) && gamePaused==false) {
+    now = millis();
+    delta = now - then;
+    offset+= -calcSpeed(delta, avatarSpeed);
+    then = now;
+  } else {
+    then = millis();
+  }
   push();
   fill(255);
   beginShape();
-  vertex(cos(offset+15)*110,sin(offset+15)*110);
-  vertex(cos(offset-5+15)*95,sin(offset-5+15)*95);
-  vertex(cos(offset+5+15)*95,sin(offset+5+15)*95);
+  vertex(cos(offset)*110,sin(offset)*110);
+  vertex(cos(offset-5)*95,sin(offset-5)*95);
+  vertex(cos(offset+5)*95,sin(offset+5)*95);
   endShape(CLOSE);
   pop();
 
@@ -191,16 +203,17 @@ function draw() {
   pop();
 
   //song, menu, game pause
-  score = Math.floor(frameCount/60);
+  score = Math.floor(timeCount/60);
   scoreText = score;
   if (gamePaused) {
-    frameCount=0;
+    timeCount=0;
     mySong.stop();
     rectMode(CENTER);
     fill(10,20,30,230);
     rect(0,0, 800, 500, 10);
     imageMode(CENTER);
     image(menuImage, 0, 0, 800, 500);
+    scoreText = lastScore;
   }
   if (gamePaused && keyIsDown(ENTER)) {
     if (firstRun) {
@@ -210,9 +223,7 @@ function draw() {
     }
     scoreText = score;
     gamePaused=false;
-  }
-  if (gamePaused) {
-    scoreText = lastScore;
+    timeCountStore=millis()*0.06;
   }
   push();
   noStroke();
@@ -284,7 +295,7 @@ function addGameCube(OFFSET) {
 //Basic line.
 function addLine(SIDE1, SIDE2, OFFSET) {
   this.thickness=40;
-  var radius = (width-frameCount*speed)+OFFSET*300;
+  var radius = (width-timeCount*speed)+OFFSET*300;
   if (radius<0) {
     radius = 0;
   }
@@ -297,24 +308,27 @@ function addLine(SIDE1, SIDE2, OFFSET) {
     vertex(cos(sideAngle*SIDE2)*(radius-thickness), sin(sideAngle*SIDE2)*(radius-thickness));
     vertex(cos(sideAngle*SIDE1)*(radius-thickness),sin(sideAngle*SIDE1)*(radius-thickness));
     endShape(CLOSE);
-    hit = collidePointLine(cos(offset+15)*110,sin(offset+15)*110,
+    //Blatantly unoptimized collision code.
+    hit = collidePointLine(cos(offset)*110,sin(offset)*110,
     cos(sideAngle*SIDE1)*(radius-thickness+10),sin(sideAngle*SIDE1)*(radius-thickness+10),
     cos(sideAngle*SIDE2)*(radius-thickness+10), sin(sideAngle*SIDE2)*(radius-thickness+10), 1)
-    || collidePointLine(cos(offset+15)*110,sin(offset+15)*110,
+    || collidePointLine(cos(offset)*110,sin(offset)*110,
     cos(sideAngle*SIDE1)*(radius-10) ,sin(sideAngle*SIDE1)*(radius-10),
     cos(sideAngle*SIDE1)*(radius-thickness+10),sin(sideAngle*SIDE1)*(radius-thickness+10), 1)
-    || collidePointLine(cos(offset+15)*110,sin(offset+15)*110,
+    || collidePointLine(cos(offset)*110,sin(offset)*110,
     cos(sideAngle*SIDE2)*(radius-10) ,sin(sideAngle*SIDE2)*(radius-10),
     cos(sideAngle*SIDE2)*(radius-thickness+10),sin(sideAngle*SIDE2)*(radius-thickness+10), 1);
   }
   pop();
 
-  //Blatantly unoptimized collision code.
+
 
   if (hit) {
     lastScore = score;
+    if(gamePaused==false){
+      failSound.play();
+    }
     gamePaused=true;
-    failSound.play();
     firstRun=false;
   }
   //print("colliding? " + hit);
