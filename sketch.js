@@ -290,7 +290,7 @@ function addLine(SIDE1, SIDE2, OFFSET) {
   }
   push();
   fill(255);
-  if(radius<width*2 && radius>60) {
+  if(radius<width && radius>60) {
     beginShape();
     vertex(cos(sideAngle*SIDE1)*radius ,sin(sideAngle*SIDE1)*radius);
     vertex(cos(sideAngle*SIDE2)*radius, sin(sideAngle*SIDE2)*radius);
