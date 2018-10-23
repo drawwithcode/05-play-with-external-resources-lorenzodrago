@@ -66,10 +66,10 @@ function draw() {
   } else {
     rotate(timeCount);
   }
-  if (timeCount%720>360 && timeCount%720<396 && timeCount>1440) {
+  if (timeCount%720>360 && timeCount%720<395 && timeCount>1440) {
     rotate(-timeCount*5);
   }
-  if (timeCount%1440>395 && timeCount%1440<720+396 && timeCount>1440) {
+  if (timeCount%1440>395 && timeCount%1440<720+395 && timeCount>1440) {
     rotate(180);
   }
 
