@@ -1,7 +1,6 @@
-var canvas, mySong, analyzer;
-var osc, envelope, fft;
+var canvas, mySong, menuImage, analyzer, fft;
+//Song start times (in seconds). These are picked randomly after the first run.
 var startTime = [0, 30, 60, 90, 120, 150]
-var menuImage;
 
 function preload(){
   mySong = loadSound("./Rhinoceros.mp3");
@@ -10,62 +9,50 @@ function preload(){
 }
 
 function setup() {
-  pixelDensity(1);
+  createCanvas(windowWidth, windowHeight);
   analyzer = new p5.Amplitude();
   analyzer.setInput(mySong);
-  envelope = new p5.Env();
   fft = new p5.FFT();
-  createCanvas(windowWidth, windowHeight);
+  pixelDensity(1); //to avoid my laptop crapping itself cause of HiDpi.
   angleMode(DEGREES);
   stroke(255);
-  timeCountStore=millis()*0.06;
-  // put setup code here
 }
-var radius = 300;
-var alpha, beta, lerpVar;
-var deltaX=0;
-var deltaY=0;
-var mult1=0;
-var mult2=5;
+
+
+var speed=8; //can be changed. Will not break spiral patterns
+var avatarSpeed=10; //DO NOT change. Will break spiral patterns.
+var polySides = 6; //can be changed. Patterns DO NOT adapt.
+var sideAngle=360/polySides;
+//Full mode enabled by default.
+var audioVisualMode=true;
+//time-related vars.
+var timeCount = 0; var timeCountStore=0;
 var score=0; var lastScore = 0; var scoreText = 0;
 var hit=0;
-var offset=0;
-var speed=8;
-var avatarSpeed=10; //do not change. it will break spiral patterns.
-var polySides = 6;
-var sideAngle=360/polySides;
-var audioVisualMode=true;
-var timeCount = 0; var timeCountStore=0;
+var offset=-90; //starting angle for player triangle.
 var gamePaused=true;
 var firstRun=true;
-
 var now, delta;
+
 function draw() {
   if (gamePaused==false) {
     timeCount = millis()*0.06 - timeCountStore;
   }
 
   background(10,20,30);
-  //framerate counter (commented out).
-  /*push();
-  noStroke();
-  fill(255);
-  textSize(30);
-  text(Math.floor(frameRate()), 20, 40);
-  pop();*/
-
-  volume = analyzer.getLevel();
   translate(width/2, height/2);
+
+
 
   push(); //the following part is transformed;
 
-
-  // BIG SPIN
+  // World Spin.
   if (timeCount%720>360) {
     rotate(-timeCount);
   } else {
     rotate(timeCount);
   }
+  //MEGA SPIN. In second half of level.
   if (timeCount%720>360 && timeCount%720<395 && timeCount>1440) {
     rotate(-timeCount*5);
   }
@@ -73,42 +60,32 @@ function draw() {
     rotate(180);
   }
 
-  fill(10,20,30);
-
   //Audio visuals here.
-  push();
-  colorMode(HSB);
-  strokeWeight(1);
-
-
+  volume = analyzer.getLevel();
   if(audioVisualMode) {
-  var spectrum = fft.analyze();
-  var length = map(spectrum.length, 0, 255, 0, 360);
-  for (alpha=0; alpha<length; alpha+=6) {
-    var x = map(alpha, 0, spectrum.length/20, 0, 360);
-    var h = map(spectrum[alpha], 0, 255, 0, 360);
-    deltaX=cos(x+frameCount*0.1)*h*3;
-    deltaY=sin(x+frameCount*0.1)*h*3;
-    beta=(alpha+frameCount*mult2)%360;
-
-    if(beta<=180) {
-      lerpVar=beta/180;
-    } else {
-      lerpVar=(360-beta)/180;
+    push();
+    colorMode(HSB);
+    strokeWeight(1);
+    var alpha, deltaX, deltaY;
+    var spectrum = fft.analyze();
+    var length = map(spectrum.length, 0, 255, 0, 360);
+    for (alpha=0; alpha<length; alpha+=6) {
+      var x = map(alpha, 0, spectrum.length/20, 0, 360);
+      var h = map(spectrum[alpha], 0, 255, 0, 360);
+      deltaX=cos(x+frameCount*0.1)*h*3;
+      deltaY=sin(x+frameCount*0.1)*h*3;
+      stroke(lerpColor(color(255,200,70), color(0,200,70), volume*6*h/360));
+      line(0,0, deltaX, deltaY);
     }
-    stroke(lerpColor(color(255,200,70), color(0,200,70), volume*6*h/360));
-    line(0,0, deltaX, deltaY);
+    pop();
   }
-  }
-  pop();
-
-  //Player triangle here.
 
 
-
-
-  var calcSpeed = function(del, speed) {
-    return (speed * del) * (60 / 1000);
+  //Player triangle here. Now with TIME BASED MOVEMENT!! As with the rest of the sketch.
+  //If your pc can't run this at 60fps, it'll still have the same speed.
+  //Also holy carp p5js has shit performance everywhere.
+  function calcSpeed(DELTA, SPEED) {
+    return (SPEED*DELTA)*0.06;
   }
   if (keyIsDown(RIGHT_ARROW) && gamePaused==false) {
     now = millis();
@@ -132,7 +109,9 @@ function draw() {
   endShape(CLOSE);
   pop();
 
-  //Level starts here!
+  //LEVEL STARTS HERE! lv var determines succession.
+  //All patterns calculate lv automatically, but it doesn't always work
+  //because I suck at maths.
   if (firstRun) {
     lv = 5;
   } else {
@@ -181,7 +160,7 @@ function draw() {
   addCPattern(0);
   addCPattern(3);
 
-  //end of level.
+  //Closing pattern.
   lv+=5;
   addCPattern(0);
   lv+=-1;
@@ -193,6 +172,7 @@ function draw() {
   //LEVEL ENDS HERE
 
   //CENTER POLYGON
+  fill(10,20,30);
   beginShape();
   scale(0.9+volume,0.9+volume);
   for (i=0; i<360; i+=sideAngle) {
@@ -202,7 +182,7 @@ function draw() {
   endShape(CLOSE);
   pop();
 
-  //song, menu, game pause
+  //song, menu, game pause, score and other stuff.
   score = Math.floor(timeCount/60);
   scoreText = score;
   if (gamePaused) {
@@ -236,6 +216,7 @@ function draw() {
 
 }
 
+//Visual mode toggle.
 function keyPressed() {
   if (keyCode === DELETE && audioVisualMode==false) {
     audioVisualMode = true;
@@ -244,7 +225,7 @@ function keyPressed() {
   }
 }
 
-//POSSIBLE PATTERNS
+//POSSIBLE PATTERNS follow.
 function addZigZag(OFFSET, LENGTH) {
   for (i=0; i<LENGTH; i++) {
     lv+=0.5; OFFSET++;
@@ -292,46 +273,43 @@ function addGameCube(OFFSET) {
   }
   lv+=length*0.1-1;
 }
-//Basic line.
+//BASIC LINE. All patterns use this.
 function addLine(SIDE1, SIDE2, OFFSET) {
   this.thickness=40;
-  var radius = (width-timeCount*speed)+OFFSET*300;
-  if (radius<0) {
-    radius = 0;
-  }
-  push();
-  fill(255);
-  if(radius<width && radius>60) {
+  side1Angle=sideAngle*SIDE1;
+  side2Angle=sideAngle*SIDE2;
+  tolerance = 10;
+  var r1 = (width-timeCount*speed)+OFFSET*300;
+  if (r1<0) {r1 = 0};
+  r2=r1-thickness; //thickness
+  r1a=r1-tolerance; r2a=r1-thickness+tolerance; //collision thickness
+  if(r1<width && r1>60) {
+    push();
+    fill(255);
     beginShape();
-    vertex(cos(sideAngle*SIDE1)*radius ,sin(sideAngle*SIDE1)*radius);
-    vertex(cos(sideAngle*SIDE2)*radius, sin(sideAngle*SIDE2)*radius);
-    vertex(cos(sideAngle*SIDE2)*(radius-thickness), sin(sideAngle*SIDE2)*(radius-thickness));
-    vertex(cos(sideAngle*SIDE1)*(radius-thickness),sin(sideAngle*SIDE1)*(radius-thickness));
+    vertex(cos(side1Angle)*r1 ,sin(side1Angle)*r1);
+    vertex(cos(side2Angle)*r1, sin(side2Angle)*r1);
+    vertex(cos(side2Angle)*r2, sin(side2Angle)*r2);
+    vertex(cos(side1Angle)*r2,sin(side1Angle)*r2);
     endShape(CLOSE);
     //Blatantly unoptimized collision code.
     hit = collidePointLine(cos(offset)*110,sin(offset)*110,
-    cos(sideAngle*SIDE1)*(radius-thickness+10),sin(sideAngle*SIDE1)*(radius-thickness+10),
-    cos(sideAngle*SIDE2)*(radius-thickness+10), sin(sideAngle*SIDE2)*(radius-thickness+10), 1)
+    cos(side1Angle)*r2a, sin(side1Angle)*r2a,
+    cos(side2Angle)*r2a, sin(side2Angle)*r2a, 1)
     || collidePointLine(cos(offset)*110,sin(offset)*110,
-    cos(sideAngle*SIDE1)*(radius-10) ,sin(sideAngle*SIDE1)*(radius-10),
-    cos(sideAngle*SIDE1)*(radius-thickness+10),sin(sideAngle*SIDE1)*(radius-thickness+10), 1)
+    cos(side1Angle)*r1a ,sin(side1Angle)*r1a,
+    cos(side1Angle)*r2a,sin(side1Angle)*r2a, 1)
     || collidePointLine(cos(offset)*110,sin(offset)*110,
-    cos(sideAngle*SIDE2)*(radius-10) ,sin(sideAngle*SIDE2)*(radius-10),
-    cos(sideAngle*SIDE2)*(radius-thickness+10),sin(sideAngle*SIDE2)*(radius-thickness+10), 1);
+    cos(side2Angle)*r1a ,sin(side2Angle)*r1a,
+    cos(side2Angle)*r2a,sin(side2Angle)*r2a, 1);
+    pop();
   }
-  pop();
-
-
-
   if (hit) {
     lastScore = score;
-    if(gamePaused==false){
-      failSound.play();
-    }
+    failSound.play();
     gamePaused=true;
     firstRun=false;
   }
-  //print("colliding? " + hit);
 }
 
 
