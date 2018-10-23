@@ -32,6 +32,7 @@ var speed=6;
 var avatarSpeed=5; //do not change. it will break spiral patterns.
 var polySides = 6;
 var sideAngle=360/polySides;
+var audioVisualMode=false;
 
 var gamePaused=true;
 var firstRun=true;
@@ -85,6 +86,9 @@ function draw() {
   push();
   colorMode(HSB);
   strokeWeight(1);
+
+
+  if(audioVisualMode) {
   var spectrum = fft.analyze();
   var length = map(spectrum.length, 0, 255, 0, 360);
   for (alpha=0; alpha<length; alpha+=6) {
@@ -101,6 +105,7 @@ function draw() {
     }
     stroke(lerpColor(color(255,200,70), color(0,200,70), volume*6*h/360));
     line(0,0, deltaX, deltaY);
+  }
   }
   pop();
 
@@ -158,7 +163,7 @@ function draw() {
   addZigZag(0,10);
   addZigZag(3,2);
   addSpiral(0,50);
-  
+
   lv+=0.5;
   addCPattern(0);
   addCPattern(3);
@@ -217,6 +222,14 @@ function draw() {
   text('SCORE: '+scoreText, 20, 40)
   pop();
 
+}
+
+function keyPressed() {
+  if (keyCode === BACKSPACE && audioVisualMode==false) {
+    audioVisualMode = true;
+  } else if (keyCode === BACKSPACE && audioVisualMode==true) {
+    audioVisualMode = false;
+  }
 }
 
 //POSSIBLE PATTERNS
