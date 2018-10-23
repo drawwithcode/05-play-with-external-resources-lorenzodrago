@@ -183,7 +183,7 @@ function draw() {
   pop();
 
   //song, menu, game pause, score and other stuff.
-  score = Math.floor(timeCount/60);
+  score = Math.floor(timeCount*10/6)/100;
   scoreText = score;
   if (gamePaused) {
     timeCount=0;
