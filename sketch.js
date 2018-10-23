@@ -64,7 +64,7 @@ function draw() {
 
 
   // BIG SPIN
-  if (frameCount%720>360 && frameCount>1440) {
+  if (frameCount%720>360) {
     rotate(-frameCount);
   } else {
     rotate(frameCount);
