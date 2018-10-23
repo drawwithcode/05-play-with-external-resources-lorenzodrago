@@ -291,19 +291,20 @@ function addLine(SIDE1, SIDE2, OFFSET) {
     vertex(cos(sideAngle*SIDE2)*(radius-thickness), sin(sideAngle*SIDE2)*(radius-thickness));
     vertex(cos(sideAngle*SIDE1)*(radius-thickness),sin(sideAngle*SIDE1)*(radius-thickness));
     endShape(CLOSE);
+    hit = collidePointLine(cos(offset+15)*110,sin(offset+15)*110,
+    cos(sideAngle*SIDE1)*(radius-thickness+10),sin(sideAngle*SIDE1)*(radius-thickness+10),
+    cos(sideAngle*SIDE2)*(radius-thickness+10), sin(sideAngle*SIDE2)*(radius-thickness+10), 1)
+    || collidePointLine(cos(offset+15)*110,sin(offset+15)*110,
+    cos(sideAngle*SIDE1)*(radius-10) ,sin(sideAngle*SIDE1)*(radius-10),
+    cos(sideAngle*SIDE1)*(radius-thickness+10),sin(sideAngle*SIDE1)*(radius-thickness+10), 1)
+    || collidePointLine(cos(offset+15)*110,sin(offset+15)*110,
+    cos(sideAngle*SIDE2)*(radius-10) ,sin(sideAngle*SIDE2)*(radius-10),
+    cos(sideAngle*SIDE2)*(radius-thickness+10),sin(sideAngle*SIDE2)*(radius-thickness+10), 1);
   }
   pop();
 
   //Blatantly unoptimized collision code.
-  hit = collidePointLine(cos(offset+15)*110,sin(offset+15)*110,
-  cos(sideAngle*SIDE1)*(radius-thickness+10),sin(sideAngle*SIDE1)*(radius-thickness+10),
-  cos(sideAngle*SIDE2)*(radius-thickness+10), sin(sideAngle*SIDE2)*(radius-thickness+10), 1)
-  || collidePointLine(cos(offset+15)*110,sin(offset+15)*110,
-  cos(sideAngle*SIDE1)*(radius-10) ,sin(sideAngle*SIDE1)*(radius-10),
-  cos(sideAngle*SIDE1)*(radius-thickness+10),sin(sideAngle*SIDE1)*(radius-thickness+10), 1)
-  || collidePointLine(cos(offset+15)*110,sin(offset+15)*110,
-  cos(sideAngle*SIDE2)*(radius-10) ,sin(sideAngle*SIDE2)*(radius-10),
-  cos(sideAngle*SIDE2)*(radius-thickness+10),sin(sideAngle*SIDE2)*(radius-thickness+10), 1);
+
   if (hit) {
     lastScore = score;
     gamePaused=true;
