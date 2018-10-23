@@ -9,6 +9,7 @@ function preload(){
   menuImage = loadImage("./menu.png");
 }
 function setup() {
+  pixelDensity(1);
   analyzer = new p5.Amplitude();
   analyzer.setInput(mySong);
   envelope = new p5.Env();
@@ -32,7 +33,7 @@ var speed=6;
 var avatarSpeed=5; //do not change. it will break spiral patterns.
 var polySides = 6;
 var sideAngle=360/polySides;
-var audioVisualMode=false;
+var audioVisualMode=true;
 
 var gamePaused=true;
 var firstRun=true;
@@ -225,9 +226,9 @@ function draw() {
 }
 
 function keyPressed() {
-  if (keyCode === BACKSPACE && audioVisualMode==false) {
+  if (keyCode === DELETE && audioVisualMode==false) {
     audioVisualMode = true;
-  } else if (keyCode === BACKSPACE && audioVisualMode==true) {
+  } else if (keyCode === DELETE && audioVisualMode==true) {
     audioVisualMode = false;
   }
 }
