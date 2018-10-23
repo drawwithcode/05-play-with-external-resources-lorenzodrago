@@ -158,15 +158,7 @@ function draw() {
   addZigZag(0,10);
   addZigZag(3,2);
   addSpiral(0,50);
-  addCPattern(0);
-  addCPattern(3);
-  addZigZag(5,4);
-  addCPattern(2);
-  addCPattern(4);
-  addGameCube(4);
-  addZigZag(0,6);
-  addZigZag(3,2);
-  addSpiral(3,20);
+  
   lv+=0.5;
   addCPattern(0);
   addCPattern(3);
